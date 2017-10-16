@@ -1,0 +1,283 @@
+#pragma comment(linker, "/STACK:1024000000,1024000000")
+#include<cstdio>
+#include<cmath>
+#include<algorithm>
+#include<cstring>
+#include<queue>
+#include<iostream>
+#include<Windows.h>
+#include<fstream>
+#include<io.h>
+#include<fstream>
+#include<string>
+#include<vector>
+#include<stdlib.h>
+#include<ctype.h>
+#include<malloc.h>
+#include<time.h>
+using namespace std;
+const int P=3;
+//const int P=51;
+const int train_max_number = 50000 + 20;
+const int test_max_number  = 10000 + 20;
+int train_number,test_number;
+int T;
+int num;
+int lb=0x3f3f3f3f;
+struct node
+{
+    short n;
+    int w;
+}dis[50005];
+struct Image
+{
+    short label;
+    int Map[28][28];
+}train[train_max_number],test[test_max_number];
+int ReverseInt(int i)
+{
+	unsigned char ch1, ch2, ch3, ch4;
+	ch1 = i & 255;
+	ch2 = (i >> 8) & 255;
+	ch3 = (i >> 16) & 255;
+	ch4 = (i >> 24) & 255;
+	return((int)ch1 << 24) + ((int)ch2 << 16) + ((int)ch3 << 8) + ch4;
+}
+void read_Mnist_Labels(char *filename,Image *arr,int &total)
+{
+    FILE *readfile=fopen(filename,"rb");
+    if (readfile != NULL)
+    {
+		int magic_number = 0;
+		int number_of_images = 0;
+
+        fread(&magic_number,sizeof(int),1,readfile);
+		fread(&number_of_images,sizeof(int),1,readfile);
+
+        magic_number = ReverseInt(magic_number);
+		number_of_images = ReverseInt(number_of_images);
+
+		cout << "magic number = " << magic_number << endl;
+		cout << "number of images = " << number_of_images << endl;
+
+        total = number_of_images;
+
+		for (int i = 0; i < number_of_images; i++)
+            fread(&arr[i].label,sizeof(unsigned char),1,readfile);
+
+        cout <<"read file successful ! " <<endl;
+    }
+    else
+    {
+        cerr <<"read labels error!" <<endl;
+    }
+
+    fclose(readfile);
+
+    cout <<endl;
+}
+
+
+void read_Mnist_Images(char *filename,Image *arr,int &total)
+{
+	FILE *readfile=fopen(filename,"rb");
+	if (readfile != NULL)
+	{
+		int magic_number = 0;
+		int number_of_images = 0;
+		int n_rows = 0;
+		int n_cols = 0;
+		unsigned char label;
+
+		fread(&magic_number,sizeof(int),1,readfile);
+		fread(&number_of_images,sizeof(int),1,readfile);
+		fread(&n_rows,sizeof(int),1,readfile);
+		fread(&n_cols,sizeof(int),1,readfile);
+
+		magic_number = ReverseInt(magic_number);
+		number_of_images = ReverseInt(number_of_images);
+		n_rows = ReverseInt(n_rows);
+		n_cols = ReverseInt(n_cols);
+
+		cout << "magic number = " << magic_number << endl;
+		cout << "number of images = " << number_of_images << endl;
+		cout << "rows = " << n_rows << endl;
+		cout << "cols = " << n_cols << endl;
+
+		total = number_of_images;
+
+		for (int i = 0; i < number_of_images; i++)
+			for (int r = 0; r < n_rows; r++)
+				for (int c = 0; c < n_cols; c++)
+                    fread(&arr[i].Map[r][c],sizeof(unsigned char),1,readfile);
+
+        cout <<"read file successful ! " <<endl;
+	}
+	else
+    {
+        cerr <<"read images error!" <<endl;
+    }
+
+	fclose(readfile);
+
+	cout <<endl;
+}
+void readfile()
+{
+    read_Mnist_Images("C:/Users/Administrator/Desktop/test/train-images.idx3-ubyte",train,train_number);
+    read_Mnist_Labels("C:/Users/Administrator/Desktop/test/train-labels.idx1-ubyte",train,train_number);
+
+    read_Mnist_Images("C:/Users/Administrator/Desktop/test/t10k-images.idx3-ubyte",test,test_number);
+    read_Mnist_Labels("C:/Users/Administrator/Desktop/test/t10k-labels.idx1-ubyte",test,test_number);
+}
+void sortfun(int left,int right)
+{
+    //int num=0;
+
+    if(left>=right) return;
+    else
+        {
+         //printf("%d %d\n",left,right);
+         int i,j;
+         int key=dis[left].w;
+         int nummark=dis[left].n;
+         int low = left;
+         int high = right;
+         while(low < high)
+            {
+              //  printf("2%d %d\n",low,high);
+                while(low < high && dis[high].w >= key)
+                    {
+                        high--;
+                //        printf("3%d %d\n",low,high);
+                    }
+                    dis[low].w = dis[high].w;
+                    dis[low].n = dis[high].n;
+                while(low < high && dis[low].w <= key)
+                    {
+                        low++;
+                       // printf("4%d %d\n",low,high);
+                    }
+                dis[high].w = dis[low].w;
+                dis[high].n = dis[low].n;
+            }
+                dis[low].w = key;
+                dis[low].n = nummark;
+                /*if(low<P)
+                {
+                    sortfun(left,low-1);
+                    sortfun(low+1,P);
+                }
+                else sortfun(left,P);*/
+                sortfun(left,low-1);
+                sortfun(low+1,right);
+
+        }
+
+
+}
+bool cmp(node x,node y)
+{
+    return x.w<y.w;
+}
+int judge()
+{
+    int i,j;
+    int cnt[10];
+    int mark1;
+    int mark2;
+    memset(cnt,0,sizeof(cnt));
+    for(i=0;i<P;i++)
+    {
+       // printf("i:%d %d\n",i,dis[i].n);
+        cnt[dis[i].n]++;
+    }
+    mark1=0;
+    mark2=cnt[0];
+    for(i=0;i<10;i++)
+    {
+        if(cnt[i]>mark2)
+            {mark2=cnt[i];mark1=i;}
+    }
+    return mark1;
+}
+int dist(int x,int y)
+{
+    return abs(x-y)*abs(x-y);
+}
+int caldis(int i,int j)
+{
+    int k,l;
+    int t=0;
+    for(k=0;k<28;k++)
+        for(l=0;l<28;l++)
+           {
+              t=t+dist(train[i].Map[k][l],test[j].Map[k][l]);
+           }
+    //if(j==0&&i<10) printf("i:%d j:%d t:%I64d",i,j,t);
+    return t;
+}
+void KNN()
+{
+   clock_t st,ed;
+   double ext;
+   st=clock();
+   int i,j;
+   int mark;
+   //int k;
+   /*for(i=0;i<1000;i++)
+        {
+         for(j=0;j<5000;j++)
+           {
+               dis[j].w=caldis(i,j);
+           }
+        }*/
+   for(j=0;j<1000;j++)
+     {
+         for(i=0;i<5000;i++)
+         {
+                dis[i].w=caldis(i,j);
+                dis[i].n=train[i].label;
+               // if(j==0&&i<=30) printf("i:%d %d\n",i,dis[i].w);
+         }
+        sortfun(0,4999);
+        //sort(dis,dis+5000,cmp);
+        lb=min(lb,dis[3].w);
+        mark=judge();
+        if(mark==test[j].label) T++;
+        //printf("test[%d] is %d   label is %d\n",j,mark,test[j].label);
+    }
+   ext=(double)(ed-st)/(double)CLOCKS_PER_SEC;
+   printf("execution time : %.3f s\n\n",ext);
+   return;
+}
+void initial()
+{
+    int k,i,j;
+    for(k=0;k<train_number;k++)
+    {
+        for(i=0;i<28;i++)
+            for(j=0;j<28;j++)
+                  if(train[k].Map[i][j]>0)
+                      train[k].Map[i][j]=1;
+    }
+    for(k=0;k<test_number;k++)
+    {
+        for(i=0;i<28;i++)
+            for(j=0;j<28;j++)
+                  if(test[k].Map[i][j]>0)
+                      test[k].Map[i][j]=1;
+    }
+}
+int main()
+{
+    readfile();
+    int i,j,k;
+    train_number=5000;
+    test_number=1000;
+    initial();
+    KNN();
+    printf("The total accuracy rate is %.3f%",(T*1.0)/1000*100);
+    printf("The mini D-value is %d\n",lb);
+    return 0;
+}
