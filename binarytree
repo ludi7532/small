@@ -1,0 +1,148 @@
+#include<iostream>
+#include<algorithm>
+#include<cstring>
+#include<list>
+#include<cstdlib>
+#include<queue>
+#define maxsize 10000
+struct TreeNode
+{
+    char v;
+    TreeNode *left;
+    TreeNode *right;
+};
+
+TreeNode *bulidbinarytree1(char *pre,char *in,int n)
+{
+    TreeNode *head;
+    char *c;
+    //int k;
+    if(n<=0) return NULL;
+    head=(TreeNode *)malloc(sizeof(TreeNode));
+    head->v=*pre;
+    for(c=in;c<in+n;c++)
+    {
+        if(*c==*pre)
+            break;
+    }
+    int k=c-in;
+    head->left=bulidbinarytree1(pre+1,in,k);
+    head->right=bulidbinarytree1(pre+k+1,c+1,n-k-1);
+    return head;
+
+}
+
+TreeNode *bulidbinarytree2(char *post,char *in,int n)
+{
+    TreeNode *head;
+    char *c;
+    //int k;
+    if(n<=0) return NULL;
+    head=(TreeNode *)malloc(sizeof(TreeNode));
+    head->v=*(post+n-1);
+    for(c=in;c<in+n;c++)
+    {
+        if(*c==*(post+n-1))
+            break;
+    }
+    int k=c-in;
+    head->left=bulidbinarytree2(post,in,k);
+    head->right=bulidbinarytree2(post+k,c+1,n-k-1);
+    return head;
+
+}
+
+void print1(TreeNode *tree)
+{
+    if(tree==NULL) return;
+    std::cout<< tree->v <<" ";
+    print1(tree->left);
+    print1(tree->right);
+    //std::cout<<std::endl;
+
+}
+void print2(TreeNode *tree)
+{
+    if(tree==NULL) return;
+    print2(tree->left);
+    std::cout<< tree->v <<" ";
+    print2(tree->right);
+    //std::cout<<std::endl;
+}
+void print3(TreeNode *tree)
+{
+    if(tree==NULL) return;
+    print3(tree->left);
+    print3(tree->right);
+    std::cout<< tree->v <<" ";
+}
+void print4(TreeNode *tree)
+{
+    std::queue<TreeNode *> layer;
+    layer.push(tree);
+    while(!layer.empty())
+    {
+        TreeNode *front1=layer.front();
+        //printf("%d\n", front1->v);
+        std::cout<<front1->v<<" ";
+        layer.pop();                  //delete previus node
+        if (front1->left != NULL)
+            layer.push(front1->left);
+        if (front1->right != NULL)
+            layer.push(front1->right);
+    }
+    return;
+}
+void Preorder(TreeNode* tree)
+{
+    TreeNode* Seqstack[maxsize];
+    int top = -1;
+    TreeNode* p;
+
+    if(tree != NULL)
+    {
+        top++;
+        Seqstack[top] = tree;
+        while(top > -1)
+        {
+            p = Seqstack[top];
+            top --;
+            //printf("%d ", p->v);
+            std::cout<<p->v<<" ";
+            if(p->right != NULL)
+            {
+                top ++;
+                Seqstack[top] = p->right;
+            }
+            if(p->left != NULL)
+            {
+                top ++;
+                Seqstack[top] = p->left;
+            }
+        }
+    }
+    return;
+}
+
+int main()
+{
+    char pre[]="ABDGCEF";
+    char in[]="DGBAECF";
+    char post[]="GDBEFCA";
+    int k1=sizeof(pre);
+    --k1;
+    TreeNode *tree1;
+    tree1=bulidbinarytree1(pre,in,k1);//binary tree built with preorder and middle order
+    tree1=bulidbinarytree2(post,in,k1);//binary tree built with postoder and midlle order
+    print1(tree1);//preorder
+    std::cout<<std::endl;
+    Preorder(tree1);//Non recursive
+    std::cout<<std::endl;
+    print2(tree1);//midlle order
+    std::cout<<std::endl;
+    print3(tree1);//postoder
+    std::cout<<std::endl;
+    print4(tree1);// according the layer
+    std::cout<<std::endl;
+    return 0;
+}
