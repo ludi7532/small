@@ -195,7 +195,7 @@ int main()
       FILE *fp;
       string s1="C:/Users/Administrator/Desktop/face/test/";
       string s2=files1[i].data();
-      const char * filename1=(s1+s2).data();
+      const char * filename1=(s1+s2).c_str();
       fp=fopen(filename1,"rb");
       cout<<filename1<<endl;
       readpic(i,1,fp);
