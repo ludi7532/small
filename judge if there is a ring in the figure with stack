@@ -1,0 +1,65 @@
+#include<cstdio>
+#include<iostream>
+#include<algorithm>
+#include<queue>
+#include<stack>
+#include<cstring>
+#include<vector>
+using namespace std;
+vector<int> vis;
+vector<vector<int> > g(100);
+vector<int> fa;
+int n;
+void inputgragh()
+{
+    cin>>n;
+    g.resize(n,vector<int>(n));
+    for(int i=0;i<n;i++)
+        for(int j=0;j<n;j++)
+            cin>>g[i][j];
+}
+int judge()
+{
+    stack<int> q;
+    q.push(0);
+    vis[0]=1;
+    int j;
+    int mark=1;
+    while(!q.empty())
+    {
+            if(!mark) break;
+            int v=q.top();
+            for(j=0;j<n;j++)
+            {
+                if(g[v][j])
+                {
+
+                        if(!vis[j])
+                        {
+                            fa[v]=j;
+                            vis[j]=1;
+                            q.push(j);
+                            break;
+                        }
+                        else
+                            {
+                             if(fa[v]==j) continue;
+                             else {mark=0;break;}
+                            }
+                }
+            }
+            if(j==n)
+            {
+                q.pop();
+            }
+    }
+    return mark;
+}
+int main()
+{
+    inputgragh();
+    int flag=judge();
+    if(!flag) cout<<"there is a loop in the graph"<<endl;
+    else cout<<"there is no loop in the graph"<<endl;
+    return 0;
+}
